@@ -9,10 +9,12 @@ class VirtualWindow(
         var size: VectorLong
 ) {
     var frequency = 1.0
+    var background = ArrayList<Pixel>()
 
-    var pixels = ArrayList<Pixel>()
+    private var pixels = ArrayList<Pixel>()
+    private var views = ArrayList<View>()
+
     private var cursorPosition = VectorLong(0, 0)
-
     private var backgroundColor = Color()
     private var foregroundColor = Color(0.95, 0.95, 0.95)
 
@@ -20,11 +22,11 @@ class VirtualWindow(
         // Init pixels on screen
         for(i in 0..size.y - 1)
             for(j in 0..size.x - 1)
-                pixels.add(Pixel(
+                background.add(Pixel(
                         VectorLong(x = j, y = i),
-                        'X',
-                        Color(),
-                        Color(0.95, 0.95, 0.95)
+                        ' ',
+                        Color(0.95, 0.95, 0.95),
+                        Color(0.8, 0.0, 1.0)
                         // TEST CODE //
 //                        Color(RandomManager.randomDouble(), RandomManager.randomDouble(), RandomManager.randomDouble()),
 //                        Color(RandomManager.randomDouble(), RandomManager.randomDouble(), RandomManager.randomDouble())
@@ -52,11 +54,16 @@ class VirtualWindow(
         }
     }
     private fun printWindow(){
+        // Make picture
+        generateScreen()
+
+        // Print pixels
         for (i in 0..size.y - 1){
             for (j in 0..size.x - 1){
                 val pixel = pixels[(i * size.x + j).toInt()]
                 moveCursor(pixel.position)
 
+                // Optimization
                 if(!backgroundColor.equals(pixel.colorBackground)){
                     backgroundColor = pixel.colorBackground
                     print("\u001b[48;5;${backgroundColor.asciiCode}m")
@@ -65,6 +72,7 @@ class VirtualWindow(
                     foregroundColor = pixel.colorForeground
                     print("\u001b[38;5;${foregroundColor.asciiCode}m")
                 }
+                // No optimization
 //                print("\u001b[38;5;${pixel.colorForeground.asciiCode}m")
 //                print("\u001b[48;5;${pixel.colorBackground.asciiCode}m")
                 print(pixel.value)
@@ -79,8 +87,20 @@ class VirtualWindow(
         print("\u001b[38;5;${foregroundColor.asciiCode}m")
     }
 
+    private fun generateScreen(){
+        pixels = ArrayList(background)
+        for(view in views){
+            val printBuffer = view.getPrintBuffer()
+            moveCursor(view.getPosition())
+            print(printBuffer.buffer)
+        }
+    }
+
+    fun getPixel(position: VectorLong): Pixel = getPixel(position.x, position.y)
+    fun getPixel(x: Long, y: Long): Pixel = pixels[(y * size.x + x).toInt()]
+
     private fun moveCursor(positionInput: VectorLong){
-        var position = this.position + positionInput
+        val position = this.position + positionInput
         if (cursorPosition.x > position.x) moveCursorLeft(cursorPosition.x - position.x)
         else if (cursorPosition.x < position.x) moveCursorRight(position.x - cursorPosition.x)
         if (cursorPosition.y > position.y) moveCursorUp(cursorPosition.y - position.y)
