@@ -1,7 +1,12 @@
 package virtualWindow
 
 import util.Color
+import util.Console.moveCursorDown
+import util.Console.moveCursorLeft
+import util.Console.moveCursorRight
+import util.Console.moveCursorUp
 import util.VectorLong
+import virtualWindow.view.View
 import kotlin.concurrent.thread
 
 class VirtualWindow(
@@ -15,7 +20,7 @@ class VirtualWindow(
     private var views = ArrayList<View>()
 
     private var cursorPosition = VectorLong(0, 0)
-    private var backgroundColor = Color()
+    private var backgroundColor = Color(0.0, 0.0, 0.0)
     private var foregroundColor = Color(0.95, 0.95, 0.95)
 
     init{
@@ -44,14 +49,17 @@ class VirtualWindow(
             moveCursorUp(size.y)
 
             while (true) {
-                var time = System.currentTimeMillis()
+                val time = System.currentTimeMillis()
                 moveCursor(position)
                 printWindow()
-                println((System.currentTimeMillis() - time) / 1000.0)
+//                println((System.currentTimeMillis() - time) / 1000.0)
 
                 Thread.sleep((1.0 / frequency * 1000).toLong())
             }
         }
+    }
+    private fun generateScreen(){
+        pixels = ArrayList(background)
     }
     private fun printWindow(){
         // Make picture
@@ -79,6 +87,14 @@ class VirtualWindow(
                 cursorPosition.x++
             }
         }
+        for(view in views){
+            val printBuffer = view.getPrintBuffer()
+            moveCursor(view.position)
+
+            // Print view
+            print(printBuffer.buffer)
+        }
+        moveCursor(VectorLong(0, 0))
 
         // Reset terminal colors
         foregroundColor = Color(0.95, 0.95, 0.95)
@@ -87,13 +103,26 @@ class VirtualWindow(
         print("\u001b[38;5;${foregroundColor.asciiCode}m")
     }
 
-    private fun generateScreen(){
-        pixels = ArrayList(background)
-        for(view in views){
-            val printBuffer = view.getPrintBuffer()
-            moveCursor(view.getPosition())
-            print(printBuffer.buffer)
-        }
+    fun addView(view: View){
+        views.add(view)
+    }
+    fun deleteView(view: View): Boolean{
+        return deleteView(view.id)
+    }
+    fun deleteView(id: String): Boolean{
+        var result = false
+        var viewForDeleting: View? = null
+
+        for (viewTemp in views)
+            if(id == viewTemp.id) {
+                viewForDeleting = viewTemp
+                result = true
+            }
+
+        if(result)
+            views.remove(viewForDeleting)
+
+        return result
     }
 
     fun getPixel(position: VectorLong): Pixel = getPixel(position.x, position.y)
@@ -108,33 +137,4 @@ class VirtualWindow(
         cursorPosition.x += position.x - cursorPosition.x
         cursorPosition.y += position.y - cursorPosition.y
     }
-    private fun moveCursorUp(n: Long) {
-        if(n <= 0) {
-            println("moveCursorUp(Long): Wrong input $n")
-            return
-        }
-        print("\u001b[" + n + "A")
-    }
-    private fun moveCursorDown(n: Long) {
-        if(n <= 0) {
-            println("moveCursorDown(Long): Wrong input $n")
-            return
-        }
-        print("\u001b[" + n + "B")
-    }
-    private fun moveCursorRight(n: Long) {
-        if(n <= 0) {
-            println("moveCursorRight(Long): Wrong input $n")
-            return
-        }
-        print("\u001b[" + n + "C")
-    }
-    private fun moveCursorLeft(n: Long) {
-        if(n <= 0) {
-            println("moveCursorLeft(Long): Wrong input $n")
-            return
-        }
-        print("\u001b[" + n + "D")
-    }
-
 }

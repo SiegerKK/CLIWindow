@@ -8,8 +8,11 @@ class Color @JvmOverloads constructor(
     companion object {
         private const val MAX_VALUE = 5
 
+        @Deprecated("Doesn't work")
         const val FOREGROUND_COLOR = "\u001B[38;5"
+        @Deprecated("Doesn't work")
         const val BACKGROUND_COLOR = "\u001B[48;5"
+        @Deprecated("Doesn't work")
         const val CLOSE_COLOR_SYMBOL = "m"
 
         const val COLOR_DEFAULT = "\u001b[39m"

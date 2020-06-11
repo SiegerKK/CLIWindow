@@ -1,4 +1,4 @@
-package virtualWindow
+package virtualWindow.view
 
 import util.VectorLong
 
