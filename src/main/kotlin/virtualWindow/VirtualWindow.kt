@@ -60,6 +60,15 @@ class VirtualWindow(
     }
     private fun generateScreen(){
         pixels = ArrayList(background)
+
+        // Integrate views' Pixels to VirtualWindow
+        for (view: View in views){
+            val pixelsView = view.getPixels()
+            for (pixel in pixelsView){
+                // TODO: not safe if view is out of VirtualWindow
+                getPixel(pixel.position + view.position).setValue(pixel)
+            }
+        }
     }
     private fun printWindow(){
         // Make picture
@@ -87,13 +96,13 @@ class VirtualWindow(
                 cursorPosition.x++
             }
         }
-        for(view in views){
+        /*for(view in views){
             val printBuffer = view.getPrintBuffer()
             moveCursor(view.position)
 
             // Print view
             print(printBuffer.buffer)
-        }
+        }*/
         moveCursor(VectorLong(0, 0))
 
         // Reset terminal colors

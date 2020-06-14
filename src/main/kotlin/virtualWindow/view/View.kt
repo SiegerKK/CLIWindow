@@ -1,6 +1,7 @@
 package virtualWindow.view
 
 import util.VectorLong
+import virtualWindow.Pixel
 
 abstract class View(
         val id: String,
@@ -8,4 +9,5 @@ abstract class View(
         val size: VectorLong
 ) {
     abstract fun getPrintBuffer(): PrintBuffer
+    abstract fun getPixels(): ArrayList<Pixel>
 }

@@ -3,22 +3,24 @@ package virtualWindow.view
 import util.Color
 import util.Console
 import util.VectorLong
+import virtualWindow.Pixel
 
 class TextView(
         id: String, position: VectorLong, size: VectorLong,
         var text: String,
-        var backgroundColor: Color = Color(0.0,0.0,0.0),
-        var foregroundColor: Color = Color(0.95, 0.95, 0.95)/*,
-        var marginText: Int = 0*/
+        var colorBackground: Color = Color(0.0,0.0,0.0),
+        var colorForeground: Color = Color(0.95, 0.95, 0.95),
+        var padding: Int = 0
 ) : View(id, position, size) {
+    @Deprecated("For VirtualWindow use getPixels()")
     override fun getPrintBuffer(): PrintBuffer {
         val result = StringBuilder()
         val words = text.replace("\n", "").split(" ")
         val cursor = VectorLong(0, 0)
 
         // Init colors
-        result.append("\u001b[48;5;${backgroundColor.asciiCode}m")
-        result.append("\u001b[38;5;${foregroundColor.asciiCode}m")
+        result.append("\u001b[48;5;${colorBackground.asciiCode}m")
+        result.append("\u001b[38;5;${colorForeground.asciiCode}m")
 
         for (word in words){
             // Check borders
@@ -45,5 +47,37 @@ class TextView(
         result.append(Console.cursorLeft(cursor.x))
 
         return PrintBuffer(result.toString(), size)
+    }
+
+    override fun getPixels(): ArrayList<Pixel> {
+        val pixels = ArrayList<Pixel>()
+        var textPointer = 0
+
+        for (i in 0 until size.y){
+            for (j in 0 until size.x){
+                // Init Pixel
+                val positionPixel = VectorLong(j, i)
+                var value: Char = ' '
+                // TODO: refactor checking new line
+                // TODO: wrapping words
+                if(i >= padding && i < size.y - padding && textPointer < text.length) {
+                    if(text[textPointer] == '\n')
+                        value = ' '
+                    else
+                        value = text[textPointer]
+                    textPointer++
+                }
+
+                // Add Pixel to list
+                pixels.add(Pixel(
+                        positionPixel,
+                        value,
+                        colorForeground,
+                        colorBackground
+                ))
+            }
+        }
+
+        return pixels
     }
 }
