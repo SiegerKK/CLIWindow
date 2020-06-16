@@ -54,17 +54,25 @@ class TextView(
         var textPointer = 0
 
         for (i in 0 until size.y){
+            var endLine = false
             for (j in 0 until size.x){
                 // Init Pixel
                 val positionPixel = VectorLong(j, i)
                 var value: Char = ' '
+
                 // TODO: refactor checking new line
                 // TODO: wrapping words
-                if(i >= padding && i < size.y - padding && textPointer < text.length) {
-                    if(text[textPointer] == '\n')
-                        value = ' '
-                    else
-                        value = text[textPointer]
+                if(text[textPointer] == '\n') {
+                    endLine = true
+                    textPointer++
+                }
+
+                if(i >= padding && i < size.y - padding             // Verify padding Y
+                        && j >= padding && j < size.x - padding     // Verify padding X
+                        && textPointer < text.length                // Verify text length
+                        && !endLine                                 // Skip before next line
+                ) {
+                    value = text[textPointer]
                     textPointer++
                 }
 
