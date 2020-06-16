@@ -10,7 +10,8 @@ class TextView(
         var text: String,
         var colorBackground: Color = Color(0.0,0.0,0.0),
         var colorForeground: Color = Color(0.95, 0.95, 0.95),
-        var padding: Int = 0
+        var paddingHorizontal: Int = 0,
+        var paddingVertical: Int = 0
 ) : View(id, position, size) {
     @Deprecated("For VirtualWindow use getPixels()")
     override fun getPrintBuffer(): PrintBuffer {
@@ -57,29 +58,42 @@ class TextView(
             var endLine = false
             for (j in 0 until size.x){
                 // Init Pixel
-                val positionPixel = VectorLong(j, i)
-                var value: Char = ' '
+                val pixelPosition = VectorLong(j, i)
+                var pixelValue = ' '
 
-                // TODO: refactor checking new line
-                // TODO: wrapping words
+                // Wrapping words
+                var localTextPointer = textPointer
+                var wordLength = 0
+                while (text[localTextPointer] != ' ' && text[localTextPointer] != '\n' && text[localTextPointer] != '\t') {
+                    wordLength++
+                    localTextPointer++
+                    if(localTextPointer >= text.length)
+                        break
+                }
+                if(wordLength > size.x - paddingHorizontal - j){
+                    endLine = true
+                }
+
+                // Verify end of line
                 if(text[textPointer] == '\n') {
                     endLine = true
                     textPointer++
                 }
 
-                if(i >= padding && i < size.y - padding             // Verify padding Y
-                        && j >= padding && j < size.x - padding     // Verify padding X
-                        && textPointer < text.length                // Verify text length
-                        && !endLine                                 // Skip before next line
-                ) {
-                    value = text[textPointer]
+                if(i >= paddingVertical && i < size.y - paddingVertical                 // Verify padding Y
+                        && j >= paddingHorizontal && j < size.x - paddingHorizontal     // Verify padding X
+                        && textPointer < text.length                                    // Verify end of text
+                        && !endLine) {                                                  // Skip for new line
+                    while(text[textPointer] == ' ' && j == paddingHorizontal.toLong())  // Skip spaces at begin of line
+                        textPointer++
+                    pixelValue = text[textPointer]
                     textPointer++
                 }
 
                 // Add Pixel to list
                 pixels.add(Pixel(
-                        positionPixel,
-                        value,
+                        pixelPosition,
+                        pixelValue,
                         colorForeground,
                         colorBackground
                 ))
